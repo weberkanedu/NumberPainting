@@ -149,3 +149,7 @@ python kitap_yap.py girdi -o cikti --book-title "Pixel Color by Number" --sort
 
 - Gemini ile üretilen görsellerin ticari kullanımı Google'ın kullanım şartlarına tabidir.
 - Amazon KDP, yapay zekâ ile üretilmiş içeriğin yayınlarken **beyan edilmesini** ister.
+
+## Lisans
+
+[MIT](LICENSE): kodu serbestçe kullanabilir, değiştirebilir ve dağıtabilirsin. Lisans metni kopyalarda korunmalıdır.
