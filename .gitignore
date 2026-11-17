@@ -1,0 +1,19 @@
+# Kişisel çalışma verileri (her kullanıcıda farklı, repoya girmez)
+girdi/
+cikti/
+silinenler/
+ornekler/
+konular.csv
+ayarlar.json
+hata.log
+*.part
+
+# Örnek ve deneme çıktıları
+sample.png
+sample_*.pdf
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

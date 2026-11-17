@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piksel Stüdyo</title>
+<style>
+:root {
+  --bg: #0a0a0d;
+  --panel: #121217;
+  --panel-2: #18181f;
+  --panel-3: #202029;
+  --line: rgba(255,255,255,.07);
+  --line-2: rgba(255,255,255,.12);
+  --text: #f3f3f6;
+  --muted: #8e8e9c;
+  --faint: #5d5d6a;
+  --accent: #8b5cf6;
+  --accent-2: #a78bfa;
+  --accent-glow: rgba(139,92,246,.35);
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --radius: 14px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  background-image: radial-gradient(1200px 500px at 85% -10%, rgba(139,92,246,.10), transparent 60%),
+                    radial-gradient(900px 400px at -10% 110%, rgba(56,189,248,.06), transparent 60%);
+  color: var(--text); font: 14px/1.45 var(--font);
+  -webkit-font-smoothing: antialiased; overflow: hidden;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- header ---------- */
+header {
+  height: 64px; display: flex; align-items: center; gap: 14px; padding: 0 24px;
+  border-bottom: 1px solid var(--line); background: rgba(10,10,13,.6); backdrop-filter: blur(12px);
+}
+.logo { display: grid; grid-template-columns: repeat(3, 8px); gap: 2px; }
+.logo i { width: 8px; height: 8px; border-radius: 2px; display: block; }
+.brand b { font: 600 16px/1.1 var(--display); letter-spacing: -.01em; display: block; }
+.brand span { color: var(--muted); font-size: 12px; }
+.spacer { flex: 1; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px 0 12px;
+  border-radius: 999px; border: 1px solid var(--line-2); background: var(--panel); font-size: 13px;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); box-shadow: 0 0 0 3px rgba(255,255,255,.04); flex: none; }
+.dot.ok { background: var(--ok); box-shadow: 0 0 0 3px rgba(52,211,153,.15), 0 0 12px rgba(52,211,153,.5); }
+.dot.warn { background: var(--warn); box-shadow: 0 0 0 3px rgba(251,191,36,.15); }
+.dot.bad { background: var(--bad); box-shadow: 0 0 0 3px rgba(248,113,113,.15); }
+.dot.live { background: var(--ok); animation: pulse 1.4s ease-in-out infinite; box-shadow: 0 0 0 3px rgba(52,211,153,.15), 0 0 12px rgba(52,211,153,.5); }
+@keyframes pulse { 50% { opacity: .4; } }
+
+/* ---------- layout ---------- */
+.app { display: grid; grid-template-columns: 392px 1fr; height: calc(100% - 64px); }
+aside { border-right: 1px solid var(--line); overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+main { overflow-y: auto; padding: 22px 28px 40px; }
+
+.card {
+  background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 18px;
+}
+.card h2 { margin: 0; font: 600 15px/1.2 var(--display); display: flex; align-items: center; gap: 10px; }
+.step { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 12px; font-weight: 700;
+        background: var(--panel-3); color: var(--accent-2); border: 1px solid var(--line-2); flex: none; }
+.sub { color: var(--muted); font-size: 12.5px; margin: 6px 0 14px; }
+.row { display: flex; align-items: center; gap: 10px; }
+.row + .row { margin-top: 10px; }
+.label { color: var(--muted); font-size: 12px; min-width: 64px; }
+.link { background: none; border: 0; padding: 0; color: var(--accent-2); font-size: 12.5px; }
+.link:hover:not(:disabled) { text-decoration: underline; }
+.link:disabled { color: var(--faint); cursor: default; }
+
+/* inputs */
+.field {
+  height: 36px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--bg);
+  padding: 0 12px; width: 100%; outline: none; transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--bg); border: 1px solid var(--line-2); border-radius: 10px; height: 36px; flex: 1; }
+.seg button { flex: 1; border: 0; background: none; border-radius: 7px; color: var(--muted); font-size: 12.5px; white-space: nowrap;
+              transition: background-color 160ms ease, color 160ms ease; }
+.seg button.on { background: #2c2c38; color: var(--text); box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 1px 2px rgba(0,0,0,.4); }
+.toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; font-size: 13px; }
+.toggle input { display: none; }
+.toggle .sw { width: 34px; height: 20px; border-radius: 999px; background: var(--panel-3); border: 1px solid var(--line-2); position: relative; transition: background-color 200ms ease; }
+.toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff;
+                     transition: transform 200ms var(--ease-out); }
+.toggle input:checked + .sw { background: var(--accent); border-color: transparent; }
+.toggle input:checked + .sw::after { transform: translateX(14px); }
+
+/* buttons */
+.btn {
+  height: 40px; border-radius: 11px; border: 1px solid var(--line-2); background: var(--panel-3);
+  padding: 0 16px; font-weight: 600; font-size: 13.5px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  transition: transform 160ms var(--ease-out), background-color 160ms ease, opacity 160ms ease, box-shadow 200ms ease;
+}
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary {
+  width: 100%; margin-top: 14px; border: 0; color: #fff;
+  background: linear-gradient(180deg, #9b70ff, #7c4df0);
+  box-shadow: 0 1px 0 rgba(255,255,255,.25) inset, 0 8px 24px -8px var(--accent-glow);
+}
+.btn.primary.live { background: linear-gradient(180deg, #23a77a, #138a62); box-shadow: 0 1px 0 rgba(255,255,255,.2) inset, 0 8px 24px -8px rgba(52,211,153,.45); }
+.btn.ghost { background: transparent; }
+.btn.small { height: 32px; font-size: 12.5px; padding: 0 12px; border-radius: 9px; }
+@media (hover: hover) and (pointer: fine) {
+  .btn.primary:hover:not(:disabled):not(.live) { background: linear-gradient(180deg, #a57fff, #8457f5); }
+  .btn:not(.primary):hover:not(:disabled) { background: #282832; }
+}
+
+/* topic card */
+.topic { padding: 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line);
+         transition: border-color 250ms ease, box-shadow 250ms ease; }
+.topic.saved { border-color: rgba(52,211,153,.7); box-shadow: 0 0 0 3px rgba(52,211,153,.14); }
+.topic-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.topic-head b { font: 650 18px var(--display); color: var(--accent-2); }
+.topic-head span { color: var(--muted); font-size: 12px; }
+.topic ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.topic li { display: flex; gap: 8px; font-size: 13px; min-width: 0; }
+.topic li em { font-style: normal; color: var(--faint); font-size: 11.5px; width: 26px; flex: none; padding-top: 1px; }
+.topic li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topic.sheet ol { grid-template-columns: 1fr 1fr; column-gap: 12px; }
+.custom { margin-top: 12px; padding: 12px; border-radius: 12px; border: 1px dashed var(--line-2); }
+.badge { flex: none; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 99px; margin-left: auto;
+         background: rgba(244,114,182,.15); color: #f9a8d4; border: 1px solid rgba(244,114,182,.35); }
+.queued { margin-top: 8px; font-size: 12px; color: #f9a8d4; }
+.link.rm { color: var(--bad); font-size: 11.5px; flex: none; margin-left: 6px; }
+.topic li .badge + .link.rm { margin-left: 4px; }
+.mini-bar { height: 4px; border-radius: 99px; background: var(--panel-3); overflow: hidden; margin-top: 10px; }
+.mini-bar i { display: block; height: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, #7c4df0, #c084fc, #f472b6);
+              transition: transform 500ms var(--ease-out); }
+
+.howto { margin-top: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(52,211,153,.35);
+         background: rgba(52,211,153,.06); font-size: 13px; }
+.howto b { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: var(--ok); }
+.howto ol { margin: 0; padding-left: 18px; color: #cfd2da; }
+.howto kbd { font: 600 11.5px "Segoe UI", sans-serif; padding: 1px 6px; border-radius: 5px; background: var(--panel-3); border: 1px solid var(--line-2); }
+
+/* progress */
+.progress { margin-top: 14px; display: none; }
+.progress.show { display: block; }
+.pct { font: 700 34px/1 var(--display); letter-spacing: -.02em; }
+.pct small { font-size: 16px; color: var(--muted); font-weight: 600; margin-left: 2px; }
+.bar { height: 8px; border-radius: 99px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; margin: 12px 0 10px; }
+.bar i { display: block; height: 100%; width: 100%; transform-origin: left; transform: scaleX(0);
+         background: linear-gradient(90deg, #7c4df0, #c084fc, #f472b6); transition: transform 600ms linear; border-radius: 99px; }
+.pmeta { display: flex; justify-content: space-between; color: var(--muted); font-size: 12.5px; gap: 10px; }
+.result { margin-top: 12px; padding: 12px; border-radius: 11px; background: var(--bg); border: 1px solid var(--line); display: none; }
+.result.show { display: block; }
+.result .row { margin-top: 10px; }
+
+/* drop zones */
+.drop {
+  display: block; border: 1.5px dashed var(--line-2); border-radius: 12px; padding: 14px; text-align: center; color: var(--muted);
+  transition: border-color 160ms ease, background-color 160ms ease; cursor: pointer; font-size: 12.5px;
+}
+.drop b { color: var(--text); font-weight: 600; }
+.drop.over, .drop:hover { border-color: var(--accent); background: rgba(139,92,246,.06); }
+
+/* log */
+details.log { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+details.log summary { padding: 12px 16px; cursor: pointer; color: var(--muted); font-size: 12.5px; list-style: none; display: flex; gap: 8px; }
+details.log summary::-webkit-details-marker { display: none; }
+.loglines { max-height: 220px; overflow-y: auto; overflow-x: hidden; overflow-wrap: anywhere; padding: 0 16px 12px;
+            font: 11.5px/1.6 "Cascadia Mono", Consolas, monospace; color: #b7b7c4; }
+.loglines div span { color: var(--faint); margin-right: 8px; }
+.loglines .err { color: var(--bad); }
+
+/* gallery */
+.ghead { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.ghead h1 { font: 650 22px/1.1 var(--display); margin: 0; letter-spacing: -.015em; }
+.count { color: var(--muted); font-size: 13px; }
+.ghead .seg { flex: 0 0 auto; width: 260px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 16px; }
+.tile {
+  position: relative; aspect-ratio: 3 / 4; border-radius: 12px; overflow: hidden; background: var(--panel-2);
+  border: 1px solid var(--line); animation: tileIn 300ms var(--ease-out) both;
+}
+@keyframes tileIn { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tile.pixel img { object-fit: contain; image-rendering: pixelated; background: #000; }
+.cap {
+  position: absolute; inset: auto 0 0 0; padding: 26px 12px 10px; font-size: 12.5px; font-weight: 600;
+  background: linear-gradient(transparent, rgba(0,0,0,.85)); display: flex; gap: 6px; align-items: baseline;
+}
+.cap em { font-style: normal; color: rgba(255,255,255,.55); font-weight: 500; font-size: 11.5px; }
+.cap span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.del {
+  position: absolute; top: 8px; right: 8px; height: 28px; min-width: 28px; padding: 0 8px; border-radius: 8px; border: 0;
+  background: rgba(10,10,13,.7); backdrop-filter: blur(6px); color: #fff; font-size: 12px; font-weight: 600;
+  opacity: 0; transition: opacity 160ms ease, transform 160ms var(--ease-out), background-color 160ms ease;
+}
+.del:active { transform: scale(0.95); }
+.tile:hover .del, .del.armed { opacity: 1; }
+.del.armed { background: var(--bad); }
+.empty { border: 1.5px dashed var(--line-2); border-radius: 16px; padding: 70px 20px; text-align: center; color: var(--muted); }
+.empty .logo { margin: 0 auto 16px; grid-template-columns: repeat(4, 12px); gap: 3px; width: max-content; }
+.empty .logo i { width: 12px; height: 12px; border-radius: 3px; }
+.empty b { display: block; color: var(--text); font: 600 16px var(--display); margin-bottom: 6px; }
+
+/* toasts */
+.toasts { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 30; }
+.toast { min-width: 280px; max-width: 440px; padding: 12px 14px; border-radius: 12px; background: var(--panel-3); border: 1px solid var(--line-2);
+         box-shadow: 0 16px 40px rgba(0,0,0,.5); display: flex; gap: 10px; align-items: flex-start; font-size: 13px;
+         transition: opacity 300ms ease, transform 300ms var(--ease-out); }
+@starting-style { .toast { opacity: 0; transform: translateY(10px); } }
+.toast.out { opacity: 0; transform: translateY(6px); transition-duration: 180ms; }
+.toast .dot { margin-top: 5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tile, .toast { animation: none; transition: opacity 200ms ease; }
+  .bar i, .mini-bar i { transition: none; }
+  .dot.live { animation: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo" aria-hidden="true">
+    <i style="background:#f472b6"></i><i style="background:#fbbf24"></i><i style="background:#34d399"></i>
+    <i style="background:#38bdf8"></i><i style="background:#8b5cf6"></i><i style="background:#f87171"></i>
+    <i style="background:#a3e635"></i><i style="background:#fb923c"></i><i style="background:#e5e7eb"></i>
+  </div>
+  <div class="brand"><b>Piksel Stüdyo</b><span>Sayı ile boyama kitabı üretici</span></div>
+  <div class="spacer"></div>
+  <span class="pill"><span class="dot" id="pilotDot"></span><span id="pilotText">Otopilot kapalı</span></span>
+</header>
+
+<div class="app">
+  <aside>
+    <section class="card">
+      <h2><span class="step">1</span>Gemini ile görsel al</h2>
+      <p class="sub">Gemini Plus aboneliğinle · <button class="link" id="refreshT" title="Bekleyen konuları yepyeni konularla değiştirir">konuları yenile</button> · <button class="link" data-open="topics">listeyi düzenle</button></p>
+      <div class="row"><span class="label">Prompt başına</span>
+        <div class="seg" id="per_prompt"><button data-v="4">4 resim (2×2)</button><button data-v="1">1 resim</button></div></div>
+
+      <div class="custom">
+        <div class="row">
+          <input id="customIn" class="field" maxlength="120" placeholder="Özel konu ekle — örn. gözlüklü kapibara" autocomplete="off">
+          <button class="btn small" id="customAdd" style="height:36px">Ekle</button>
+        </div>
+        <div class="row" style="margin-top:8px"><label class="toggle"><input type="checkbox" id="customKids" checked><span class="sw"></span>Çocuk için (sevimli stil, sadece eklenen bu konuya)</label></div>
+      </div>
+
+      <div class="topic" id="topicCard" style="margin-top:12px">
+        <div class="topic-head"><b class="num" id="tLabel">—</b><span class="num" id="tProgress"></span></div>
+        <ol id="tList"></ol>
+        <div class="queued" id="tQueued" hidden></div>
+        <div class="mini-bar"><i id="tBar"></i></div>
+      </div>
+
+      <button class="btn primary" id="pilotBtn">▶ Otopilotu başlat</button>
+      <div class="row" style="margin-top:10px">
+        <button class="btn small" id="geminiBtn" style="flex:1">Gemini'yi aç ↗</button>
+        <button class="btn small" id="copyBtn" style="flex:1">Tekrar kopyala</button>
+      </div>
+
+      <div class="howto" id="howto" hidden>
+        <b><span class="dot live"></span>Otopilot çalışıyor — prompt panoda</b>
+        <ol>
+          <li>Gemini'de <kbd>Ctrl</kbd>+<kbd>V</kbd> ve <kbd>Enter</kbd></li>
+          <li>Görsel gelince üzerine sağ tık → <b style="display:inline;color:inherit">Görseli kopyala</b></li>
+          <li>Hepsi bu: görsel kaydedilir, sıradaki prompt panoya gelir</li>
+        </ol>
+      </div>
+      <p class="sub" id="howtoOff" style="margin:12px 0 0">Otopilotu başlat: prompt panoya kopyalanır. Gemini'de yapıştır, görsel gelince sağ tık → <i>Görseli kopyala</i>. Uygulama görseli kendisi alır.</p>
+
+      <div class="row" style="margin-top:12px">
+        <button class="link" id="prevT">‹ Önceki</button><span class="spacer"></span>
+        <button class="link" id="undoBtn">↶ Son kaydı geri al</button><span class="spacer"></span>
+        <button class="link" id="nextT">Atla ›</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="step">2</span>Kendi görselin</h2>
+      <p class="sub">Fotoğraf veya çizim ekle; fotoğraflar otomatik temizlenir.</p>
+      <label class="drop" id="drop"><b>Sürükle bırak</b> ya da tıkla ve seç<br><span style="font-size:12px">PNG · JPG · WEBP</span>
+        <input type="file" id="file" accept=".png,.jpg,.jpeg,.webp" multiple hidden></label>
+    </section>
+
+    <section class="card">
+      <h2><span class="step">3</span>Kitabı oluştur</h2>
+      <p class="sub">Lejant, boyama sayfaları, içindekiler ve cevap anahtarı.</p>
+      <div class="row"><span class="label">Kitap adı</span><input id="title" class="field" maxlength="60"></div>
+      <div class="row"><span class="label">Hücre</span>
+        <div class="seg" id="shape"><button data-v="square">Kare</button><button data-v="circle">Nokta (petek)</button></div></div>
+      <div class="row"><span class="label"></span><label class="toggle"><input type="checkbox" id="sort"><span class="sw"></span>Kolaydan zora sırala</label></div>
+      <button class="btn primary" id="buildBtn">Kitabı oluştur</button>
+      <div class="progress" id="buildProg">
+        <div class="pct num" id="buildPct">0<small>%</small></div>
+        <div class="bar"><i id="buildBar"></i></div>
+        <div class="pmeta"><span id="buildNow">Görseller dönüştürülüyor…</span><span class="num" id="buildEta"></span></div>
+      </div>
+      <div class="result" id="buildResult">
+        <div id="buildSummary" style="font-size:13px"></div>
+        <div class="row"><button class="btn small" data-open="pdf">PDF'i aç</button><button class="btn small" data-open="report">Kalite raporu</button><button class="btn small ghost" data-open="output">Klasör</button></div>
+      </div>
+    </section>
+
+    <details class="log" id="logBox">
+      <summary><span>Etkinlik günlüğü</span><span class="spacer"></span><span id="logLast" style="color:var(--faint);overflow:hidden;white-space:nowrap;max-width:200px;text-overflow:ellipsis"></span></summary>
+      <div class="loglines" id="logLines"></div>
+    </details>
+  </aside>
+
+  <main id="main">
+    <div class="ghead">
+      <h1>Görseller</h1><span class="count num" id="imgCount"></span>
+      <div class="spacer"></div>
+      <div class="seg" id="view"><button data-v="orig">Orijinal</button><button data-v="pixel">Boyama önizleme</button></div>
+      <button class="btn small" data-open="input">Klasörü aç</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>
+      <div class="logo" aria-hidden="true">
+        <i style="background:#8b5cf6"></i><i style="background:#f472b6"></i><i style="background:#fbbf24"></i><i style="background:#34d399"></i>
+        <i style="background:#38bdf8"></i><i style="background:#202029"></i><i style="background:#202029"></i><i style="background:#fb923c"></i>
+        <i style="background:#a3e635"></i><i style="background:#202029"></i><i style="background:#202029"></i><i style="background:#f87171"></i>
+        <i style="background:#e5e7eb"></i><i style="background:#8b5cf6"></i><i style="background:#f472b6"></i><i style="background:#fbbf24"></i>
+      </div>
+      <b>Henüz görsel yok</b>Soldan otopilotu başlat ya da kendi görsellerini buraya sürükle.
+    </div>
+  </main>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const T = new URLSearchParams(location.search).get('t');
+const $ = s => document.querySelector(s);
+let S = null, logSince = 0, viewMode = 'orig', gallerySig = '', initialized = false, lastTaskKey = '', lastSaves = null, pollTimer;
+
+async function api(path, body) {
+  const r = await fetch(path, { method: body === undefined ? 'GET' : 'POST',
+    headers: { 'X-Token': T, 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j;
+}
+
+function toast(msg, kind = 'ok', ms = 5000) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="dot ${kind}"></span><div></div>`;
+  el.lastChild.textContent = msg;
+  $('#toasts').append(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 200); }, ms);
+}
+
+const fmtTime = s => s == null ? '' : s < 60 ? `≈ ${s} sn kaldı` : `≈ ${Math.floor(s / 60)} dk ${s % 60} sn kaldı`;
+function setSeg(id, v) { document.querySelectorAll(`#${id} button`).forEach(b => b.classList.toggle('on', b.dataset.v === String(v))); }
+function segVal(id) { return document.querySelector(`#${id} button.on`)?.dataset.v; }
+
+function renderManual() {
+  const m = S.manual;
+  $('#pilotDot').className = 'dot' + (m.on ? ' live' : '');
+  $('#pilotText').textContent = m.on ? 'Otopilot açık · panoyu izliyor' : 'Otopilot kapalı';
+  const btn = $('#pilotBtn');
+  btn.classList.toggle('live', m.on);
+  btn.textContent = m.on ? '■ Otopilotu durdur' : '▶ Otopilotu başlat';
+  btn.disabled = !m.on && !m.pending;
+  $('#howto').hidden = !m.on; $('#howtoOff').hidden = m.on;
+  $('#copyBtn').disabled = !m.pending;
+  $('#undoBtn').disabled = !m.can_undo;
+
+  $('#tLabel').textContent = m.label || '✓';
+  $('#tProgress').textContent = `${m.done} / ${m.total} hazır`;
+  $('#tBar').style.transform = `scaleX(${m.total ? m.done / m.total : 0})`;
+  $('#topicCard').classList.toggle('sheet', m.target.length === 4);
+  const sig = JSON.stringify(m.target);
+  const list = $('#tList');
+  if (list.dataset.sig !== sig) {
+    list.dataset.sig = sig;
+    list.innerHTML = '';
+    if (!m.target.length) list.innerHTML = '<li><span>Bütün konuların görseli hazır. Listeye konu ekleyebilir ya da kitabı oluşturabilirsin.</span></li>';
+    for (const t of m.target) {
+      const li = document.createElement('li');
+      li.innerHTML = '<em class="num"></em><span></span>';
+      li.firstChild.textContent = t.num; li.children[1].textContent = t.title; li.title = t.title;
+      if (t.custom) {
+        const b = document.createElement('span');
+        b.className = 'badge'; b.textContent = t.kids ? 'Özel · çocuk stili' : 'Özel';
+        li.append(b, removeButton(t.name, t.title));
+      }
+      list.append(li);
+    }
+  }
+  const q = $('#tQueued'), qsig = JSON.stringify(m.queued_custom);
+  q.hidden = !m.queued_custom.length;
+  if (q.dataset.sig !== qsig) {
+    q.dataset.sig = qsig;
+    q.textContent = m.queued_custom.length ? 'Sonra: ' : '';
+    for (const c of m.queued_custom) {
+      const s = document.createElement('span');
+      s.textContent = c.subject + (c.kids ? ' (çocuk)' : '') + ' ';
+      q.append(s, removeButton(c.name, c.subject), ' ');
+    }
+  }
+  if (lastSaves !== null && m.saves > lastSaves) {
+    const card = $('#topicCard');
+    card.classList.add('saved'); setTimeout(() => card.classList.remove('saved'), 1200);
+    toast(m.on ? 'Kaydedildi · sıradaki prompt panoda' : 'Kaydedildi');
+  }
+  lastSaves = m.saves;
+}
+
+function removeButton(name, title) {
+  const b = document.createElement('button');
+  b.className = 'link rm'; b.textContent = '✕ kaldır'; b.title = 'Bu özel konuyu sıradan çıkar';
+  b.onclick = () => api('/api/custom/remove', { name })
+    .then(() => { toast(`“${title}” sıradan kaldırıldı`); poll(); })
+    .catch(e => toast(e.message, 'bad'));
+  return b;
+}
+
+function renderTask() {
+  const t = S.task, busy = !!t.running;
+  $('#buildBtn').disabled = busy;
+  $('#buildProg').classList.toggle('show', busy);
+  if (t.kind === 'build') {
+    const pct = Math.min(100, t.pct || 0);
+    $('#buildPct').innerHTML = `${Math.floor(pct)}<small>%</small>`;
+    $('#buildBar').style.transform = `scaleX(${pct / 100})`;
+    $('#buildNow').textContent = t.done >= t.total - 1 ? 'PDF yazılıyor…' : `Görsel ${t.done + 1} / ${t.total - 1} dönüştürülüyor`;
+    $('#buildEta').textContent = fmtTime(t.eta);
+  }
+  $('#buildResult').classList.toggle('show', !busy && S.outputs.pdf);
+  if (S.outputs.pdf) $('#buildSummary').textContent =
+    (t.kind === 'build' && t.result?.summary ? t.result.summary.replace('Bitti:', 'Hazır:') : 'Son kitap') + ` · ${S.outputs.pdf_time}`;
+  const key = `${t.kind}|${t.started}|${t.running}`;
+  if (lastTaskKey && key !== lastTaskKey && !t.running && t.kind) {
+    if (t.error) toast(t.error, 'bad', 9000);
+    else if (t.result) toast('Kitap hazır · ' + t.result.summary.replace('Bitti: ', ''), 'ok');
+  }
+  lastTaskKey = key;
+}
+
+function renderGallery() {
+  const sig = viewMode + JSON.stringify(S.images);
+  $('#imgCount').textContent = `${S.images.length} görsel`;
+  if (sig === gallerySig) return;
+  gallerySig = sig;
+  const grid = $('#grid');
+  grid.innerHTML = '';
+  $('#empty').hidden = S.images.length > 0;
+  for (const im of S.images) {
+    const el = document.createElement('div');
+    el.className = 'tile' + (viewMode === 'pixel' ? ' pixel' : '');
+    const num = im.name.split('_')[0];
+    el.innerHTML = `<img loading="lazy" alt=""><div class="cap"><em class="num"></em><span></span></div><button class="del" title="Sil">✕</button>`;
+    el.querySelector('img').src = `/${viewMode === 'pixel' ? 'pixel' : 'thumb'}/${encodeURIComponent(im.name)}?t=${T}&v=${im.v}`;
+    el.querySelector('img').alt = im.title;
+    el.querySelector('.cap em').textContent = /^\d+$/.test(num) ? num : /^k\d+$/.test(num) ? 'kendi' : '';
+    el.querySelector('.cap span').textContent = im.title;
+    const del = el.querySelector('.del');
+    del.onclick = async () => {
+      if (!del.classList.contains('armed')) {
+        del.classList.add('armed'); del.textContent = 'Sil?';
+        setTimeout(() => { del.classList.remove('armed'); del.textContent = '✕'; }, 3000);
+        return;
+      }
+      try {
+        const r = await api('/api/delete', { name: im.name });
+        toast(`${im.title} silindi (silinenler klasöründe)` + (r.retired ? ' · bu konu tekrar istenmeyecek' : ''));
+        poll();
+      }
+      catch (e) { toast(e.message, 'bad'); }
+    };
+    grid.append(el);
+  }
+}
+
+function renderLogs(lines) {
+  if (!lines.length) return;
+  const box = $('#logLines');
+  const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 20;
+  for (const l of lines) {
+    const d = document.createElement('div');
+    if (/HATA|okunamadı|hata/i.test(l.msg)) d.className = 'err';
+    d.innerHTML = '<span></span>';
+    d.firstChild.textContent = l.t;
+    d.append(l.msg);
+    box.append(d);
+  }
+  while (box.children.length > 300) box.firstChild.remove();
+  if (atBottom) box.scrollTop = box.scrollHeight;
+  $('#logLast').textContent = lines.at(-1).msg;
+  logSince = lines.at(-1).id;
+}
+
+function initForm() {
+  const s = S.settings;
+  $('#title').value = s.title; $('#sort').checked = !!s.sort;
+  setSeg('shape', s.shape); setSeg('view', viewMode); setSeg('per_prompt', s.per_prompt);
+  initialized = true;
+}
+
+async function poll() {
+  clearTimeout(pollTimer);
+  try {
+    S = await api('/api/state?since=' + logSince);
+    if (!initialized) initForm();
+    renderManual(); renderTask(); renderGallery(); renderLogs(S.logs);
+  } catch (e) {
+    $('#pilotDot').className = 'dot bad'; $('#pilotText').textContent = 'Uygulama kapandı';
+  }
+  pollTimer = setTimeout(poll, S && (S.task.running || S.manual.on) ? 700 : 2500);
+}
+
+const save = patch => api('/api/settings', patch).catch(e => toast(e.message, 'bad'));
+const manual = action => api('/api/manual', { action }).then(poll).catch(e => toast(e.message, 'bad', 7000));
+
+// ---------- events ----------
+document.querySelectorAll('.seg').forEach(seg => seg.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  setSeg(seg.id, b.dataset.v);
+  if (seg.id === 'view') { viewMode = b.dataset.v; gallerySig = ''; S && renderGallery(); return; }
+  save({ [seg.id]: seg.id === 'per_prompt' ? +b.dataset.v : b.dataset.v }).then(poll);
+}));
+$('#title').onchange = () => save({ title: $('#title').value.trim() });
+$('#sort').onchange = () => save({ sort: $('#sort').checked });
+
+$('#pilotBtn').onclick = () => manual(S?.manual.on ? 'stop' : 'start').then(() => {
+  if (S?.manual.on) toast('Prompt panoda · Gemini\'de Ctrl+V ile yapıştır');
+});
+$('#copyBtn').onclick = () => manual('copy').then(() => toast('Prompt panoya kopyalandı'));
+$('#geminiBtn').onclick = () => api('/api/open', { what: 'gemini' }).catch(e => toast(e.message, 'bad'));
+$('#prevT').onclick = () => manual('prev');
+$('#nextT').onclick = () => manual('next');
+$('#undoBtn').onclick = () => manual('undo').then(() => toast('Son kayıt geri alındı', 'warn'));
+async function addCustom() {
+  const subject = $('#customIn').value.trim();
+  if (!subject) return $('#customIn').focus();
+  try {
+    const r = await api('/api/custom', { subject, kids: $('#customKids').checked });
+    $('#customIn').value = '';
+    toast(r.now ? `“${subject}” sıradaki konu` : `“${subject}” sıraya alındı · Gemini'deki bu tur bitince gelir`);
+    poll();
+  } catch (e) { toast(e.message, 'bad'); }
+}
+$('#customAdd').onclick = addCustom;
+$('#customIn').addEventListener('keydown', e => { if (e.key === 'Enter') addCustom(); });
+$('#refreshT').onclick = () => manual('refresh').then(() => toast('Bekleyen konular yepyeni konularla değiştirildi'));
+
+$('#buildBtn').onclick = async () => {
+  try { await save({ title: $('#title').value.trim(), shape: segVal('shape'), sort: $('#sort').checked });
+        await api('/api/build', {}); poll(); }
+  catch (e) { toast(e.message, 'bad', 8000); }
+};
+document.querySelectorAll('[data-open]').forEach(b => b.onclick = () =>
+  api('/api/open', { what: b.dataset.open }).catch(e => toast(e.message, 'warn')));
+
+// uploads: "Kendi görselin" box = own photos; a Gemini image dropped/pasted elsewhere = current topic(s)
+async function send(file, toTopic) {
+  const url = '/api/upload?name=' + encodeURIComponent(file.name || 'gorsel.png') + (toTopic ? '&topic=current' : '');
+  const r = await fetch(url, { method: 'POST', headers: { 'X-Token': T }, body: file });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Yüklenemedi');
+  return j;
+}
+async function uploadOwn(files) {
+  let ok = 0;
+  for (const f of files) { try { await send(f, false); ok++; } catch (e) { toast(e.message, 'bad'); } }
+  if (ok) toast(`${ok} görsel eklendi`);
+  poll();
+}
+async function uploadTopic(file) {
+  try { await send(file, true); poll(); } catch (e) { toast(e.message, 'bad'); }
+}
+$('#file').onchange = e => { uploadOwn([...e.target.files]); e.target.value = ''; };
+addEventListener('paste', e => {
+  const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith('image/'));
+  if (!f) return;  // plain text paste (e.g. into the title field) works as usual
+  e.preventDefault();
+  // with the autopilot on, the image was already saved the moment it was copied
+  if (S?.manual.on) return toast('Otopilot açık: görsel kopyalandığı anda zaten kaydedildi', 'warn');
+  uploadTopic(f);
+});
+let dragDepth = 0;
+const clearOver = () => { dragDepth = 0; $('#drop').classList.remove('over'); };
+addEventListener('dragenter', e => { e.preventDefault(); dragDepth++; $('#drop').classList.add('over'); });
+addEventListener('dragleave', () => { if (--dragDepth <= 0) clearOver(); });
+addEventListener('dragover', e => e.preventDefault());
+addEventListener('drop', e => {
+  e.preventDefault(); clearOver();
+  const files = [...e.dataTransfer.files];
+  if (files.length === 1 && !e.target.closest?.('#drop')) uploadTopic(files[0]);
+  else uploadOwn(files);
+});
+
+addEventListener('pagehide', () => navigator.sendBeacon('/api/bye?t=' + T));
+poll();
+</script>
+</body>
+</html>
